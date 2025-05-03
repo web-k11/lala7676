@@ -56,7 +56,7 @@ tailwind.config = {
 </script>
 <style>
 body {
-  background: linear-gradient(135deg, #fdf2f8 0%, #ffe6f0 50%, #fbcfe8 100%);
+  background: linear-gradient(135deg, #fcd9e7 0%, #ffe6f0 50%, #fbcfe8 100%);
   min-height: 100vh;
   font-family: 'Noto Sans TC', sans-serif;
   position: relative;
@@ -325,6 +325,11 @@ body {
   opacity: 0;
   visibility: hidden;
 }
+
+/* 確保已選分類區域在所有設備上都有背景色 */
+#selected-categories {
+  background-color: #ffe8f5;
+}
 </style>
 </head>
 <body>
@@ -372,7 +377,7 @@ body {
 
     <!-- Active filters -->
     <div id="active-filters" class="flex items-center mt-3">
-      <div class="flex-grow px-3 py-2 bg-pink-50 rounded-lg">
+      <div class="flex-grow px-3 py-2 bg-[#ffe8f5] rounded-lg">
         <div id="selected-categories" class="flex flex-wrap gap-1">
           <!-- Selected category tags will be inserted here -->
         </div>
@@ -868,7 +873,7 @@ function updateSelectedCategoriesUI() {
   if (selectedCategories.size > 0) {
     Array.from(selectedCategories).forEach(category => {
       const tag = document.createElement('div');
-      tag.className = 'filter-tag bg-pink-200 text-pink-800 cursor-pointer text-xs px-2 py-1 rounded-full flex items-center mr-2 mb-1';
+      tag.className = 'filter-tag bg-pink-200 text-pink-800 cursor-pointer text-xs px-2 py-1 rounded-full flex items-center mr-2 mb-1 border-0';
       
       const span = document.createElement('span');
       span.textContent = category;
