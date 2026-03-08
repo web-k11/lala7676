@@ -596,89 +596,86 @@ function toggleSearchClearButton() {
   }
 }
 
-// 獲取試算表數據
-async function fetchSheetData() {
-  showLoading();
-  hideError();
+// --- 智慧更新設定 ---
+let lastUpdateTimestamp = 0; // 記錄上次成功的更新時間
+const UPDATE_COOLDOWN = 2 * 60 * 1000; // 2 分鐘 (毫秒)
 
-  try {
-    // 使用新的試算表ID
-    const sheetId = '1SbXNYG39xKU8FrfNQJjK_6V5ZKk30LxT3xzg3MAEuy8';
-    
-    // 使用Google Sheets API v4直接獲取數據
-    // 注意：這需要試算表已設置為"任何人都可以查看"
-    const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1?key=AIzaSyDFU1PsOmEKCZfnJkCi5-1kVMi6yk5aDtE`;
-
-    const response = await fetch(apiUrl);
-    
-    if (!response.ok) {
-      // 嘗試使用備用方法
-      return await fetchSheetDataAlternative(sheetId);
-    }
-
-    const data = await response.json();
-    
-    if (!data.values || data.values.length <= 1) {
-      throw new Error('No data found in spreadsheet');
-    }
-    
-    // 處理數據 - 將標題行與數據行結合成對象數組
-    const headers = data.values[0];
-    const rows = data.values.slice(1);
-    
-    const processedData = rows.map(row => {
-      const item = {};
-      headers.forEach((header, index) => {
-        item[header] = row[index] || '';
-      });
-      return item;
-    });
-    
-    processSheetData(processedData);
-    hideLoading();
-  } catch (err) {
-    console.error('Error fetching sheet data:', err);
-    // 嘗試使用備用方法
-    await fetchSheetDataAlternative(sheetId);
+// 獲取試算表數據 (新增 isSilent 參數，判斷是否為背景靜默更新)
+async function fetchSheetData(isSilent = false) {
+  // 如果不是靜默更新，才顯示讀取中動畫
+  if (!isSilent) {
+    showLoading();
+    hideError();
   }
-}
 
-// 備用獲取試算表數據方法
-async function fetchSheetDataAlternative(sheetId) {
   try {
-    // 使用 OpenSheet API 作為備用
-    const apiUrl = `https://opensheet.elk.sh/${sheetId}/Sheet1`;
+  // 試算表ID
+    const dataSourceConfig = {
+      sheetId: '1sLi8ap9scV_iKPb_IiGLmP7kpKBk6lbyincsliUNYws',
+      apiKey: 'AIzaSyDFU1PsOmEKCZfnJkCi5-1kVMi6yk5aDtE',
+      targetRange: 'Sheet1',
+      enableDataProxy: true
+    };
     
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
+    const proxyEndpoint = 'https://script.google.com/macros/s/AKfycbw-MnACC1oJuQ8DOjKUjwbZIFzUIMeyFsPvb8XHZ6PVFRQQPzkTVDmvpXwy7vX7yYdSxQ/exec';
+    const targetUrl = `${proxyEndpoint}?t=${new Date().getTime()}`;
+
+    const response = await fetch(targetUrl);
+    if (!response.ok) throw new Error('Network response was not ok');
 
     const data = await response.json();
-    processSheetData(data);
+    
+    // 更新成功，紀錄時間
+    lastUpdateTimestamp = Date.now();
+    console.log(`[DataService] ${isSilent ? '背景更新' : '初次載入'}成功: ${new Date().toLocaleTimeString()}`);
+
+    // 1. 處理標題與頁面設定
+    if (data.titleData && data.titleData.length > 0) {
+      const titleObject = data.titleData[0];
+      if (titleObject['分頁']) document.title = titleObject['分頁'];
+      const mainTitleElement = document.querySelector('.title-effect');
+      if (mainTitleElement) mainTitleElement.textContent = titleObject['大標題'] || '';
+      const subtitleElement = document.querySelector('.subtitle');
+      if (subtitleElement) subtitleElement.textContent = titleObject['副標題'] || '';
+      
+
+      localStorage.setItem(CACHE_KEY_TITLE, JSON.stringify(data.titleData));
+    }
+
+    // 2. 處理內容資料 (自動覆蓋舊資料)
+    if (data.sheet1Data) {
+      processSheetData(data.sheet1Data);
+
+
+      localStorage.setItem(CACHE_KEY_SONGS, JSON.stringify(data.sheet1Data));
+    }
+
     hideLoading();
   } catch (err) {
-    console.error('Error fetching sheet data (alternative):', err);
-    
-    // 最後嘗試使用 sheetdb.io
-    try {
-      const apiUrl = `https://sheetdb.io/api/v1/58f61be4dda40/${sheetId}`;
-      const response = await fetch(apiUrl);
-      
-      if (!response.ok) {
-        throw new Error('All methods failed');
-      }
-      
-      const data = await response.json();
-      processSheetData(data);
-      hideLoading();
-    } catch (finalErr) {
-      console.error('All methods failed:', finalErr);
+    console.error('[DataService] Sync failed:', err);
+    // 只有在非靜默狀態下才顯示錯誤訊息
+    if (!isSilent) {
       hideLoading();
       showError();
     }
   }
 }
+
+// 偵測是否需要更新的邏輯
+function checkForUpdate() {
+  const now = Date.now();
+  // 如果從未更新過，或距離上次更新超過 2 分鐘
+  if (lastUpdateTimestamp !== 0 && (now - lastUpdateTimestamp > UPDATE_COOLDOWN)) {
+    console.log("[AutoSync] 偵測到活動且冷卻結束，啟動背景更新...");
+    fetchSheetData(true); // 傳入 true，代表靜默更新，不轉圈圈
+  }
+}
+
+// 監聽行為：使用者滑動網頁時
+window.addEventListener('scroll', () => {
+  checkForUpdate();
+}, { passive: true });
+
 
 // 處理試算表數據
 function processSheetData(data) {
