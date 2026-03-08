@@ -611,8 +611,8 @@ async function fetchSheetData(isSilent = false) {
   try {
   // 試算表ID
     const dataSourceConfig = {
-      sheetId: '1sLi8ap9scV_iKPb_IiGLmP7kpKBk6lbyincsliUNYws',
-      apiKey: 'AIzaSyDFU1PsOmEKCZfnJkCi5-1kVMi6yk5aDtE',
+      sheetId: '1sLi8ap9scV_iKPblalala_IiGLmP7kpKBk6lbyincsliUNYws',
+      apiKey: 'AIzaSyDFU1PsOmEKClalalaZfnJkCi5-1kVMi6yk5aDtE',
       targetRange: 'Sheet1',
       enableDataProxy: true
     };
@@ -638,16 +638,11 @@ async function fetchSheetData(isSilent = false) {
       const subtitleElement = document.querySelector('.subtitle');
       if (subtitleElement) subtitleElement.textContent = titleObject['副標題'] || '';
       
-
-      localStorage.setItem(CACHE_KEY_TITLE, JSON.stringify(data.titleData));
     }
 
     // 2. 處理內容資料 (自動覆蓋舊資料)
     if (data.sheet1Data) {
       processSheetData(data.sheet1Data);
-
-
-      localStorage.setItem(CACHE_KEY_SONGS, JSON.stringify(data.sheet1Data));
     }
 
     hideLoading();
