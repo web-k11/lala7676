@@ -623,7 +623,7 @@ async function fetchSheetData(isSilent = false) {
       enableDataProxy: true
     };
     
-    const proxyEndpoint = 'https://script.google.com/macros/s/AKfycbw-MnACC1oJuQ8DOjKUjwbZIFzUIMeyFsPvb8XHZ6PVFRQQPzkTVDmvpXwy7vX7yYdSxQ/exec';
+    const proxyEndpoint = 'https://script.google.com/macros/s/AKfycbzvaI4GeNLacgjCwoNAIuptCwqXdirmoqp6e8SMXl74hr7YTduS0VjPCUgt4V3VCghRbQ/exec';
     const targetUrl = `${proxyEndpoint}?t=${new Date().getTime()}`;
 
     const response = await fetch(targetUrl);
