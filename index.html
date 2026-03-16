@@ -756,14 +756,14 @@ function filterSongs() {
       }
     }
 
-    // 搜索過濾
+// 搜索過濾
     if (searchTerm) {
       return (
-        (song.title && song.title.toLowerCase().includes(searchTerm)) ||
-        (song.artist && song.artist.toLowerCase().includes(searchTerm)) ||
-        (song.language && song.language.toLowerCase().includes(searchTerm)) ||
-        (song.category && song.category.toLowerCase().includes(searchTerm)) ||
-        (song.notes && song.notes.toLowerCase().includes(searchTerm))
+        (song.title && String(song.title).toLowerCase().includes(searchTerm)) ||
+        (song.artist && String(song.artist).toLowerCase().includes(searchTerm)) ||
+        (song.language && String(song.language).toLowerCase().includes(searchTerm)) ||
+        (song.category && String(song.category).toLowerCase().includes(searchTerm)) ||
+        (song.notes && String(song.notes).toLowerCase().includes(searchTerm))
       );
     }
 
